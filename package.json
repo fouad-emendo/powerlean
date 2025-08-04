@@ -1,0 +1,21 @@
+{
+  "name": "powerlean-grid",
+  "version": "1.0.0",
+  "description": "Interactive grid layout with resizable cells and link management using gridstack.js",
+  "main": "index.html",
+  "scripts": {
+    "build": "tsc",
+    "dev": "concurrently \"tsc --watch\" \"npx http-server . --port 8080\"",
+    "dev:build": "tsc --watch",
+    "dev:serve": "npx http-server . --port 8080",
+    "serve": "npx http-server ."
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0",
+    "concurrently": "^8.2.0"
+  },
+  "dependencies": {
+    "gridstack": "^10.3.1"
+  }
+} 

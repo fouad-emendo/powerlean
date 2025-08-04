@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PowerLean Grid</title>
+    <link href="node_modules/gridstack/dist/gridstack.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>PowerLean Grid</h1>
+            <div class="controls">
+                <label for="grid-selector">Grid Layout:</label>
+                <select id="grid-selector" class="grid-selector">
+                    <option value="3x3" selected>3x3 Grid</option>
+                    <option value="4x4">4x4 Grid</option>
+                    <option value="3x4">3x4 Grid</option>
+                </select>
+                <button id="reset-grid" class="btn btn-secondary">Reset Grid</button>
+                <button id="save-layout" class="btn btn-primary">Save Layout</button>
+                <button id="load-layout" class="btn btn-secondary">Load Layout</button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div id="grid-container" class="grid-stack"></div>
+        </main>
+
+        <aside class="sidebar">
+            <div class="widget-panel">
+                <h3>Widget Manager</h3>
+                
+                <!-- Add New Widget Section -->
+                <div class="add-widget-section">
+                    <h4>Add New Widget</h4>
+                    <button id="add-widget" class="btn btn-primary full-width">+ Add Empty Widget</button>
+                </div>
+                
+                <hr class="divider">
+                
+                <!-- Configure Selected Widget Section -->
+                <div class="link-panel">
+                    <h4>Configure Selected Widget</h4>
+                    <div id="no-selection" class="help-text">
+                        Click on a widget to configure it
+                    </div>
+                    
+                    <div id="widget-config" class="link-form" style="display: none;">
+                        <input type="url" id="link-url" placeholder="Website URL (e.g., google.com)" class="input-field">
+                        <input type="text" id="link-title" placeholder="Title" class="input-field">
+                        
+                        <div class="widget-type-selector">
+                            <label class="radio-label">
+                                <input type="radio" name="widget-type" value="link" checked>
+                                <span class="radio-text">
+                                    <strong>Link Widget</strong>
+                                    <small>Click to open in new tab</small>
+                                </span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="widget-type" value="embed">
+                                <span class="radio-text">
+                                    <strong>Embedded Widget</strong>
+                                    <small>Show webpage preview (some sites may block embedding)</small>
+                                </span>
+                            </label>
+                        </div>
+                        
+                        <div class="widget-actions">
+                            <button id="add-link" class="btn btn-primary">Save Website</button>
+                            <button id="remove-widget" class="btn btn-secondary">Remove Widget</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+    
+    <script src="node_modules/gridstack/dist/gridstack-all.js"></script>
+    <script type="text/javascript">
+        let grid;
+        let currentLayout = '3x3';
+        let websites = {
+            'widget-test': {
+                url: 'https://example.com',
+                title: 'Test Embed',
+                type: 'embed'
+            }
+        };
+        let selectedWidget = null;
+        let widgetCounter = 1; // Start after test widget
+
+        // Create grid based on layout
+        function createGrid() {
+            console.log('Creating grid with layout:', currentLayout);
+            
+            // Get container element
+            const container = document.getElementById('grid-container');
+            if (!container) {
+                console.error('Grid container not found!');
+                return;
+            }
+            
+            // Destroy existing grid
+            if (grid) {
+                try {
+                    grid.destroy(false);
+                    grid = null;
+                } catch (e) {
+                    console.warn('Error destroying grid:', e);
+                }
+            }
+            
+            // Clear and reset container
+            container.innerHTML = '';
+            container.className = 'grid-stack';
+
+            // Grid configurations
+            const configs = {
+                '3x3': { columns: 3, rows: 3 },
+                '4x4': { columns: 4, rows: 4 },
+                '3x4': { columns: 3, rows: 4 }
+            };
+            
+            const config = configs[currentLayout];
+            
+            // Add small delay to ensure DOM is ready
+            setTimeout(() => {
+                try {
+                    // Initialize grid with proper sizing and spacing
+                    grid = GridStack.init({
+                        column: config.columns,
+                        cellHeight: 180,
+                        cellHeightUnit: 'px',
+                        margin: 12,
+                        disableDrag: false,
+                        disableResize: false,
+                        float: false,
+                        acceptWidgets: true,
+                        animate: true,
+                        minRow: config.rows,
+                        maxRow: config.rows + 10,
+                        verticalMargin: 12,
+                        horizontalMargin: 12,
+                        staticGrid: false,
+                        disableOneColumnMode: true,
+                        resizable: {
+                            handles: 'se, sw, ne, nw, s, n, e, w',
+                            autoHide: false
+                        },
+                        draggable: {
+                            handle: '.grid-stack-item-content, .widget-header'
+                        },
+                        column: config.columns,
+                        row: config.rows
+                    }, container);
+                    
+                    if (!grid) {
+                        console.error('GridStack initialization failed');
+                        return;
+                    }
+                    
+                    // Create initial widgets based on layout
+                    const items = [];
+                    widgetCounter = 0; // Reset counter
+                    
+                    // Set grid column attribute for CSS grid layout
+                    container.setAttribute('gs-column', config.columns.toString());
+                    
+                    for (let i = 0; i < (config.rows * config.columns); i++) {
+                        const row = Math.floor(i / config.columns);
+                        const col = i % config.columns;
+                        const widgetId = `widget-${widgetCounter++}`;
+                        
+                        const widgetContent = createWidgetContent(widgetId, i + 1);
+                        items.push({
+                            x: col,
+                            y: row,
+                            w: 1,
+                            h: 1,
+                            content: `<div class="grid-stack-item-content">${widgetContent}</div>`,
+                            id: widgetId,
+                            noResize: false,
+                            noMove: false,
+                            autoPosition: true
+                        });
+                    }
+                    
+                    console.log('Loading items into grid:', items);
+                    grid.load(items);
+                    
+                    // Force grid to recalculate sizing
+                    setTimeout(() => {
+                        // Trigger resize to force GridStack to recalculate
+                        window.dispatchEvent(new Event('resize'));
+                        grid.compact();
+                        if (grid.resize) grid.resize();
+                        
+                        // Force grid to update layout
+                        grid.batchUpdate();
+                        const gridItems = grid.getGridItems();
+                        gridItems.forEach((item, index) => {
+                            grid.update(item, {
+                                x: index % config.columns,
+                                y: Math.floor(index / config.columns),
+                                w: 1,
+                                h: 1
+                            });
+                            console.log(`Item ${index} positioned at (${index % config.columns}, ${Math.floor(index / config.columns)})`);
+                        });
+                        grid.commit();
+                        
+                        setupWidgetClickHandlers();
+                    }, 150);
+                    
+                    console.log(`Grid created with ${items.length} widgets`);
+                    
+                } catch (e) {
+                    console.error('Error creating grid:', e);
+                }
+            }, 50);
+        }
+
+        // Create widget content
+        function createWidgetContent(widgetId, number) {
+            const website = websites[widgetId];
+            
+            if (website) {
+                // Default to 'link' if no type is specified (backward compatibility)
+                const widgetType = website.type || 'link';
+                
+                if (widgetType === 'embed') {
+                    return `
+                        <div class="widget-container embed-widget" data-widget="${widgetId}">
+                            <div class="widget-header">
+                                <span class="widget-number">${number}</span>
+                                <span class="widget-title">${website.title}</span>
+                                <div class="widget-controls">
+                                    <button class="control-btn" onclick="refreshEmbed('${widgetId}')" title="Refresh">🔄</button>
+                                    <button class="control-btn" onclick="openWebsite('${widgetId}')" title="Open in new tab">🔗</button>
+                                    <button class="edit-btn" onclick="editWebsite('${widgetId}')">⚙️</button>
+                                </div>
+                            </div>
+                            <div class="widget-body embed-body">
+                                <iframe 
+                                    id="iframe-${widgetId}"
+                                    src="${website.url}" 
+                                    frameborder="0"
+                                    sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-presentation"
+                                    allow="autoplay; fullscreen; picture-in-picture"
+                                    loading="lazy">
+                                    <div class="iframe-fallback">
+                                        <p>Unable to load ${website.title}</p>
+                                        <button onclick="openWebsite('${widgetId}')" class="btn btn-primary">Open in New Tab</button>
+                                    </div>
+                                </iframe>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div class="widget-container link-widget" data-widget="${widgetId}">
+                            <div class="widget-header">
+                                <span class="widget-number">${number}</span>
+                                <button class="edit-btn" onclick="editWebsite('${widgetId}')">⚙️</button>
+                            </div>
+                            <div class="widget-body" onclick="openWebsite('${widgetId}')">
+                                <div class="website-link">
+                                    <strong>${website.title}</strong>
+                                    <small>${website.url.replace('https://', '').replace('http://', '')}</small>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            } else {
+                return `
+                    <div class="widget-container empty-widget-container" data-widget="${widgetId}">
+                        <div class="widget-header">
+                            <span class="widget-number">${number}</span>
+                        </div>
+                        <div class="widget-body">
+                            <div class="empty-widget">
+                                <span class="add-icon">+</span>
+                                <span>Click to select</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Setup click handlers for widgets
+        function setupWidgetClickHandlers() {
+            const widgets = document.querySelectorAll('.grid-stack-item');
+            widgets.forEach(widget => {
+                widget.addEventListener('click', function(e) {
+                    if (e.target.closest('.edit-btn') || e.target.closest('.website-link') || e.target.closest('.control-btn')) return;
+                    
+                    // Remove previous selection
+                    document.querySelectorAll('.grid-stack-item').forEach(w => w.classList.remove('selected'));
+                    
+                    // Select this widget
+                    widget.classList.add('selected');
+                    const widgetContainer = widget.querySelector('[data-widget]');
+                    selectedWidget = widgetContainer ? widgetContainer.dataset.widget : null;
+                    
+                    // Update sidebar UI
+                    updateSidebarForSelection();
+                    
+                    console.log('Selected widget:', selectedWidget);
+                });
+            });
+        }
+
+        // Update sidebar based on selection
+        function updateSidebarForSelection() {
+            const noSelection = document.getElementById('no-selection');
+            const widgetConfig = document.getElementById('widget-config');
+            
+            if (selectedWidget) {
+                noSelection.style.display = 'none';
+                widgetConfig.style.display = 'block';
+                
+                // Pre-fill form if widget has a website
+                const website = websites[selectedWidget];
+                if (website) {
+                    document.getElementById('link-url').value = website.url.replace('https://', '').replace('http://', '');
+                    document.getElementById('link-title').value = website.title;
+                    document.querySelector(`input[name="widget-type"][value="${website.type || 'link'}"]`).checked = true;
+                } else {
+                    // Clear form for empty widget
+                    document.getElementById('link-url').value = '';
+                    document.getElementById('link-title').value = '';
+                    document.querySelector('input[name="widget-type"][value="link"]').checked = true;
+                }
+            } else {
+                noSelection.style.display = 'block';
+                widgetConfig.style.display = 'none';
+            }
+        }
+
+        // Add new empty widget to grid
+        function addNewWidget() {
+            if (!grid) {
+                console.error('Grid not initialized');
+                return;
+            }
+            
+            const widgetId = `widget-${widgetCounter++}`;
+            const widgetNumber = grid.getGridItems().length + 1;
+            const widgetContent = createWidgetContent(widgetId, widgetNumber);
+            
+            // Add widget to grid
+            const newWidget = grid.addWidget({
+                w: 1,
+                h: 1,
+                content: `<div class="grid-stack-item-content">${widgetContent}</div>`,
+                id: widgetId
+            });
+            
+            // Setup click handlers for the new widget
+            setTimeout(() => {
+                setupWidgetClickHandlers();
+            }, 100);
+            
+            console.log(`Added new widget: ${widgetId}`);
+        }
+
+        // Remove selected widget
+        function removeWidget() {
+            if (!selectedWidget || !grid) {
+                return;
+            }
+            
+            if (confirm('Are you sure you want to remove this widget?')) {
+                // Find and remove the widget
+                const widgets = grid.getGridItems();
+                const widgetElement = widgets.find(w => {
+                    const container = w.querySelector('[data-widget]');
+                    return container && container.dataset.widget === selectedWidget;
+                });
+                
+                if (widgetElement) {
+                    grid.removeWidget(widgetElement);
+                    delete websites[selectedWidget];
+                    selectedWidget = null;
+                    updateSidebarForSelection();
+                    console.log('Widget removed');
+                }
+            }
+        }
+
+        // Add/Update website from sidebar
+        function addWebsiteFromSidebar() {
+            if (!selectedWidget) {
+                alert('Please select a widget first by clicking on it');
+                return;
+            }
+            
+            const url = document.getElementById('link-url').value.trim();
+            const title = document.getElementById('link-title').value.trim();
+            const widgetType = document.querySelector('input[name="widget-type"]:checked').value;
+            
+            if (!url) {
+                alert('Please enter a website URL');
+                return;
+            }
+            
+            const fullUrl = url.startsWith('http') ? url : `https://${url}`;
+            const finalTitle = title || new URL(fullUrl).hostname;
+            
+            // Store website with type
+            websites[selectedWidget] = {
+                url: fullUrl,
+                title: finalTitle,
+                type: widgetType
+            };
+            
+            // Update widget
+            updateWidget(selectedWidget);
+            
+            console.log(`Added ${widgetType} widget to ${selectedWidget}:`, finalTitle, fullUrl);
+        }
+
+        // Edit website (with prompt for now)
+        function editWebsite(widgetId) {
+            const website = websites[widgetId];
+            if (!website) return;
+            
+            const newUrl = prompt('Edit website URL:', website.url.replace('https://', '').replace('http://', ''));
+            if (newUrl === null) return;
+            
+            const newTitle = prompt('Edit website title:', website.title);
+            if (newTitle === null) return;
+            
+            if (newUrl) {
+                const fullUrl = newUrl.startsWith('http') ? newUrl : `https://${newUrl}`;
+                websites[widgetId] = {
+                    url: fullUrl,
+                    title: newTitle || newUrl,
+                    type: website.type || 'link' // Preserve existing type or default to link
+                };
+                updateWidget(widgetId);
+            } else {
+                delete websites[widgetId];
+                updateWidget(widgetId);
+            }
+        }
+
+        // Refresh embedded iframe
+        function refreshEmbed(widgetId) {
+            const iframe = document.getElementById(`iframe-${widgetId}`);
+            if (iframe) {
+                const src = iframe.src;
+                iframe.src = '';
+                setTimeout(() => {
+                    iframe.src = src;
+                }, 100);
+            }
+        }
+
+        // Open website
+        function openWebsite(widgetId) {
+            const website = websites[widgetId];
+            if (website) {
+                window.open(website.url, '_blank');
+            }
+        }
+
+        // Update widget content
+        function updateWidget(widgetId) {
+            const widgets = grid.getGridItems();
+            const widget = widgets.find(w => w.querySelector(`[data-widget="${widgetId}"]`));
+            
+            if (widget) {
+                const content = widget.querySelector('.grid-stack-item-content');
+                const number = widget.querySelector('.widget-number').textContent;
+                content.innerHTML = createWidgetContent(widgetId, number);
+                setupWidgetClickHandlers();
+            }
+        }
+
+        // Save layout to localStorage
+        function saveLayout() {
+            const layout = {
+                currentLayout: currentLayout,
+                websites: websites,
+                gridItems: grid.save()
+            };
+            localStorage.setItem('powerlean-grid-layout', JSON.stringify(layout));
+            alert('Layout saved!');
+        }
+
+        // Load layout from localStorage
+        function loadLayout() {
+            const saved = localStorage.getItem('powerlean-grid-layout');
+            if (!saved) {
+                alert('No saved layout found');
+                return;
+            }
+            
+            try {
+                const layout = JSON.parse(saved);
+                currentLayout = layout.currentLayout || '3x3';
+                websites = layout.websites || {};
+                
+                // Update selector
+                document.getElementById('grid-selector').value = currentLayout;
+                
+                // Recreate grid
+                createGrid();
+                
+                alert('Layout loaded!');
+            } catch (e) {
+                alert('Error loading layout');
+                console.error(e);
+            }
+        }
+
+        // Reset grid
+        function resetGrid() {
+            if (confirm('Are you sure you want to reset the grid? This will clear all websites and widgets.')) {
+                websites = {};
+                selectedWidget = null;
+                widgetCounter = 0;
+                createGrid();
+                updateSidebarForSelection();
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, setting up PowerLean Grid...');
+            
+            // Check if GridStack is available
+            if (typeof GridStack === 'undefined') {
+                console.error('GridStack library not loaded!');
+                return;
+            }
+            
+            // Setup event listeners first
+            setupEventListeners();
+            
+            // Add click handler to clear selection when clicking outside widgets
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.grid-stack-item') && !e.target.closest('.sidebar')) {
+                    document.querySelectorAll('.grid-stack-item').forEach(w => w.classList.remove('selected'));
+                    selectedWidget = null;
+                    updateSidebarForSelection();
+                }
+            });
+            
+            // Create initial grid with delay
+            setTimeout(() => {
+                createGrid();
+            }, 100);
+        });
+        
+        function setupEventListeners() {
+            // Grid selector
+            const gridSelector = document.getElementById('grid-selector');
+            if (gridSelector) {
+                gridSelector.addEventListener('change', function(e) {
+                    currentLayout = e.target.value;
+                    websites = {}; // Clear websites when changing layout
+                    createGrid();
+                });
+            }
+            
+            // Control buttons
+            const saveBtn = document.getElementById('save-layout');
+            const loadBtn = document.getElementById('load-layout');
+            const resetBtn = document.getElementById('reset-grid');
+            const addLinkBtn = document.getElementById('add-link');
+            const addWidgetBtn = document.getElementById('add-widget');
+            const removeWidgetBtn = document.getElementById('remove-widget');
+            
+            if (saveBtn) saveBtn.addEventListener('click', saveLayout);
+            if (loadBtn) loadBtn.addEventListener('click', loadLayout);
+            if (resetBtn) resetBtn.addEventListener('click', resetGrid);
+            if (addLinkBtn) addLinkBtn.addEventListener('click', addWebsiteFromSidebar);
+            if (addWidgetBtn) addWidgetBtn.addEventListener('click', addNewWidget);
+            if (removeWidgetBtn) removeWidgetBtn.addEventListener('click', removeWidget);
+        }
+    </script>
+</body>
+</html> 
