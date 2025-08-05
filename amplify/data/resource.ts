@@ -1,12 +1,38 @@
 import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
 
-/*== STEP 1 ===============================================================
-The section below creates a Todo database table with a "content" field. Try
-adding a new "isDone" field as a boolean. The authorization rule below
-specifies that any unauthenticated user can "create", "read", "update", 
-and "delete" any "Todo" records.
+/*== PowerLean Grid Data Schema ===============================================
+This schema defines data models for storing grid layouts and widget 
+configurations for the PowerLean Grid application.
 =========================================================================*/
 const schema = a.schema({
+  GridLayout: a
+    .model({
+      name: a.string().required(),
+      rows: a.integer().required(),
+      columns: a.integer().required(),
+      layout: a.json(), // GridStack layout configuration
+      userId: a.string(), // Optional: for user-specific layouts
+      isDefault: a.boolean().default(false),
+      createdAt: a.datetime(),
+      updatedAt: a.datetime(),
+    })
+    .authorization((allow) => [allow.guest()]),
+  
+  Widget: a
+    .model({
+      gridLayoutId: a.id().required(),
+      widgetId: a.string().required(),
+      type: a.enum(['link', 'embed', 'powerapp']),
+      title: a.string(),
+      url: a.url(),
+      position: a.json(), // { x, y, width, height }
+      config: a.json(), // Additional widget configuration
+      createdAt: a.datetime(),
+      updatedAt: a.datetime(),
+    })
+    .authorization((allow) => [allow.guest()]),
+    
+  // Keep the original Todo for reference
   Todo: a
     .model({
       content: a.string(),
@@ -23,31 +49,31 @@ export const data = defineData({
   },
 });
 
-/*== STEP 2 ===============================================================
-Go to your frontend source code. From your client-side code, generate a
-Data client to make CRUDL requests to your table. (THIS SNIPPET WILL ONLY
-WORK IN THE FRONTEND CODE FILE.)
+/*== Usage Examples ========================================================
+// Create a new grid layout
+const newLayout = await client.models.GridLayout.create({
+  name: "My Dashboard",
+  rows: 3,
+  columns: 3,
+  layout: gridStackData,
+  isDefault: true
+});
 
-Using JavaScript or Next.js React Server Components, Middleware, Server 
-Actions or Pages Router? Review how to generate Data clients for those use
-cases: https://docs.amplify.aws/gen2/build-a-backend/data/connect-to-API/
+// Add widgets to the layout
+const widget = await client.models.Widget.create({
+  gridLayoutId: newLayout.data.id,
+  widgetId: "widget-1",
+  type: "link",
+  title: "Google",
+  url: "https://google.com",
+  position: { x: 0, y: 0, width: 2, height: 2 }
+});
+
+// Fetch all layouts
+const { data: layouts } = await client.models.GridLayout.list();
+
+// Fetch widgets for a specific layout
+const { data: widgets } = await client.models.Widget.list({
+  filter: { gridLayoutId: { eq: layoutId } }
+});
 =========================================================================*/
-
-/*
-"use client"
-import { generateClient } from "aws-amplify/data";
-import type { Schema } from "@/amplify/data/resource";
-
-const client = generateClient<Schema>() // use this Data client for CRUDL requests
-*/
-
-/*== STEP 3 ===============================================================
-Fetch records from the database and use them in your frontend component.
-(THIS SNIPPET WILL ONLY WORK IN THE FRONTEND CODE FILE.)
-=========================================================================*/
-
-/* For example, in a React component, you can use this snippet in your
-  function's RETURN statement */
-// const { data: todos } = await client.models.Todo.list()
-
-// return <ul>{todos.map(todo => <li key={todo.id}>{todo.content}</li>)}</ul>
