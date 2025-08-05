@@ -1,6 +1,9 @@
 version: 1
 backend:
   phases:
+    preBuild:
+      commands:
+        - nvm use 20
     build:
       commands:
         - npm install --prefix amplify
@@ -8,6 +11,7 @@ frontend:
   phases:
     preBuild:
       commands:
+        - nvm use 20
         - npm ci
     build:
       commands:
