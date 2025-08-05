@@ -2,7 +2,7 @@ import { defineStorage } from '@aws-amplify/backend';
 
 export const storage = defineStorage({
   name: 'powerleanStorage',
-  access: (allow) => ({
+  access: allow => ({
     // Allow authenticated users to read/write/delete their own files
     'private/{entity_id}/*': [
       allow.entity('identity').to(['read', 'write', 'delete'])

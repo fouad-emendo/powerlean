@@ -16,7 +16,7 @@ const schema = a.schema({
       createdAt: a.datetime(),
       updatedAt: a.datetime(),
     })
-    .authorization((allow) => [allow.guest()]),
+    .authorization(allow => [allow.guest()]),
   
   Widget: a
     .model({
@@ -30,14 +30,14 @@ const schema = a.schema({
       createdAt: a.datetime(),
       updatedAt: a.datetime(),
     })
-    .authorization((allow) => [allow.guest()]),
+    .authorization(allow => [allow.guest()]),
     
   // Keep the original Todo for reference
   Todo: a
     .model({
       content: a.string(),
     })
-    .authorization((allow) => [allow.guest()]),
+    .authorization(allow => [allow.guest()]),
 });
 
 export type Schema = ClientSchema<typeof schema>;
