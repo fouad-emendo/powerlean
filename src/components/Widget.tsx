@@ -37,7 +37,7 @@ export function Widget({ id, link, onEdit, onRemove }: WidgetProps) {
           <button className="widget-btn" onClick={handleRemove} title="Remove">❌</button>
         </div>
       </div>
-      <div className="widget-body width-100 height-100">
+      <div className="widget-body">
         {link ? (
           <iframe
             src={link.url}
