@@ -109,7 +109,7 @@ body {
     padding: 20px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     min-height: 700px;
-    height: auto;
+    height: 100;
     width: 100%;
     min-width: 800px;
     border: 2px solid #e9ecef;
@@ -305,6 +305,7 @@ body {
     border: 2px dashed #6c757d;
     border-radius: 4px;
     transition: all 0.3s ease;
+    width: 100%;
     visibility: visible !important;
     opacity: 1 !important;
     display: flex !important;

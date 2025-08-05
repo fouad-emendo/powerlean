@@ -1,61 +1,43 @@
 import React, { useEffect, useRef } from 'react';
 import { GridStack as GridStackJS } from 'gridstack';
-// CSS will be imported globally through Vite config
+import 'gridstack/dist/gridstack.min.css';
 
 interface GridStackProps {
   children?: React.ReactNode;
   className?: string;
+  onGridReady?: (grid: GridStackJS) => void;
 }
 
-export function GridStack({ children, className = '' }: GridStackProps) {
+export function GridStack({ children, className = '', onGridReady }: GridStackProps) {
   const gridRef = useRef<HTMLDivElement>(null);
-  const gridInstanceRef = useRef<GridStackJS>();
 
   useEffect(() => {
     if (!gridRef.current) return;
 
-    // Initialize GridStack
     const grid = GridStackJS.init({
       column: 3,
       cellHeight: 180,
       margin: 12,
       minRow: 3,
-      maxRow: 13,
       float: false,
-      animate: true,
-      disableDrag: false,
+      removable: false,
       disableResize: false,
-      resizable: {
-        handles: 'se, sw, ne, nw, s, n, e, w',
-        autoHide: false
-      },
       draggable: {
-        handle: '.grid-stack-item-content, .widget-header'
-      }
+        handle: '.widget-header',
+      },
+      resizable: {
+        handles: 'se, sw, s, w, e, n, nw, ne',
+      },
     }, gridRef.current);
 
-    gridInstanceRef.current = grid;
+    if (onGridReady) {
+      onGridReady(grid);
+    }
 
-    // Add event listeners
-    grid.on('change', (_event: Event, _items: any[]) => {
-      console.log('Grid changed:', grid.save());
-    });
-
-    grid.on('added', (_event: Event, items: any[]) => {
-      console.log('Items added:', items);
-    });
-
-    grid.on('removed', (_event: Event, items: any[]) => {
-      console.log('Items removed:', items);
-    });
-
-    // Cleanup
     return () => {
-      if (gridInstanceRef.current) {
-        gridInstanceRef.current.destroy();
-      }
+      grid.destroy(false);
     };
-  }, []);
+  }, [onGridReady]);
 
   return (
     <div className={`grid-stack ${className}`} ref={gridRef}>
@@ -64,22 +46,22 @@ export function GridStack({ children, className = '' }: GridStackProps) {
   );
 }
 
-export function GridItem({ children, x, y, width = 1, height = 1, id }: {
+export function GridItem({ children, id, x, y, width = 1, height = 1 }: {
   children: React.ReactNode;
+  id: string;
   x: number;
   y: number;
   width?: number;
   height?: number;
-  id: string;
 }) {
   return (
     <div
       className="grid-stack-item"
+      data-gs-id={id}
       data-gs-x={x}
       data-gs-y={y}
       data-gs-width={width}
       data-gs-height={height}
-      data-gs-id={id}
     >
       <div className="grid-stack-item-content">
         {children}

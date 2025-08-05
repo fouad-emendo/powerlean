@@ -12,7 +12,13 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: true,
     rollupOptions: {
-      external: []
+      external: [],
+      output: {
+        format: 'es',
+        entryFileNames: '[name].[hash].mjs',
+        chunkFileNames: '[name].[hash].mjs',
+        assetFileNames: '[name].[hash].[ext]'
+      }
     }
   },
   resolve: {
@@ -20,11 +26,15 @@ export default defineConfig({
       'gridstack': resolve(__dirname, 'node_modules/gridstack')
     }
   },
+  optimizeDeps: {
+    include: ['gridstack']
+  },
   css: {
-    preprocessorOptions: {
-      css: {
-        additionalData: `@import "gridstack/dist/gridstack.min.css";`
-      }
+    modules: {
+      localsConvention: 'camelCase'
     }
+  },
+  json: {
+    stringify: true
   }
 }); 
