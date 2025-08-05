@@ -1,9 +1,12 @@
 version: 1
 backend:
   phases:
+    preBuild:
+      commands:
+        - cd amplify && npm ci
     build:
       commands:
-        - echo "Backend deployment should happen automatically"
+        - cd amplify && npx ampx sandbox --once --identifier=main
 frontend:
   phases:
     preBuild:
