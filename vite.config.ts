@@ -23,7 +23,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      'gridstack': resolve(__dirname, 'node_modules/gridstack')
+      'gridstack': resolve(__dirname, 'node_modules/gridstack'),
+      '@amplify-outputs': resolve(__dirname, './amplify_outputs.json')
     }
   },
   optimizeDeps: {
@@ -37,4 +38,4 @@ export default defineConfig({
   json: {
     stringify: true
   }
-}); 
+});

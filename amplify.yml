@@ -15,11 +15,13 @@ frontend:
         - npm ci
     build:
       commands:
+        - cp amplify_outputs.json dist/
         - npm run build
   artifacts:
     baseDirectory: dist
     files:
       - '**/*'
+      - '../amplify_outputs.json'
   cache:
     paths:
       - node_modules/**/*

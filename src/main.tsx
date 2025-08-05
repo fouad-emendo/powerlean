@@ -8,7 +8,7 @@ import App from './App';
 // Import Amplify configuration
 async function configureAmplify() {
   try {
-    const config = await import('../amplify_outputs.json');
+    const config = await import('@amplify-outputs');
     Amplify.configure(config.default);
     console.log('Amplify configured successfully');
   } catch (error) {
