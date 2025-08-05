@@ -2,7 +2,8 @@ version: 1
 backend:
   phases:
     build:
-      commands: []
+      commands:
+        - echo "Backend deployment should happen automatically"
 frontend:
   phases:
     preBuild:
