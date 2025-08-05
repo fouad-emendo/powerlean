@@ -1,12 +1,11 @@
 version: 1
 backend:
   phases:
-    preBuild:
-      commands:
-        - cd amplify && npm install
     build:
       commands:
-        - cd amplify && npx ampx sandbox --once --identifier=main
+        - cd amplify
+        - npm install
+        - npx ampx sandbox --once --identifier=main
 frontend:
   phases:
     preBuild:
