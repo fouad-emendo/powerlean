@@ -3,7 +3,7 @@ backend:
   phases:
     preBuild:
       commands:
-        - cd amplify && npm ci
+        - cd amplify && npm install
     build:
       commands:
         - cd amplify && npx ampx sandbox --once --identifier=main
