@@ -10,8 +10,13 @@ async function configureAmplify() {
   try {
     const config = await import('../amplify_outputs.json');
     Amplify.configure(config.default);
+    console.log('Amplify configured successfully');
   } catch (error) {
-    console.warn('Amplify configuration not found:', error);
+    console.warn('Amplify configuration not found, app will work without backend features:', error);
+    // Configure with minimal config to prevent errors
+    Amplify.configure({
+      aws_project_region: 'us-east-1',
+    });
   }
 }
 

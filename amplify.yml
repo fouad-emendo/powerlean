@@ -7,6 +7,7 @@ backend:
     build:
       commands:
         - npm install --prefix amplify
+        - npx ampx generate outputs --format json --out-dir .
 frontend:
   phases:
     preBuild:
