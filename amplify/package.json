@@ -1,15 +1,6 @@
 {
   "type": "module",
-  "scripts": {
-    "build": "tsc",
-    "start": "node dist/backend.js"
-  },
   "dependencies": {
-    "@aws-amplify/backend": "^1.10.1",
-    "@aws-amplify/backend-cli": "^0.9.2"
-  },
-  "devDependencies": {
-    "typescript": "^5.0.0",
-    "@types/node": "^20.0.0"
+    "@aws-amplify/backend": "^1.10.1"
   }
 }

@@ -1,26 +1,8 @@
 version: 1
 backend:
   phases:
-    preBuild:
-      commands:
-        - nvm use 20
-        - cd amplify && npm install && cd ..
     build:
-      commands:
-        - |
-          cd amplify
-          echo "Building backend..."
-          npm run build
-          echo "Running backend script..."
-          node dist/backend.js
-          if [ -f outputs.json ]; then
-            echo "Copying outputs.json..."
-            cp outputs.json ../amplify_outputs.json
-          else
-            echo "No outputs.json file generated, creating default config..."
-            echo '{"aws_project_region":"us-east-1"}' > ../amplify_outputs.json
-          fi
-          cd ..
+      commands: []
 frontend:
   phases:
     preBuild:
@@ -32,8 +14,14 @@ frontend:
         - npm run build
     postBuild:
       commands:
-        - cp amplify_outputs.json dist/
-        - echo "Copied amplify_outputs.json to dist/"
+        - |
+          if [ -f amplify_outputs.json ]; then
+            cp amplify_outputs.json dist/
+            echo "Copied amplify_outputs.json to dist/"
+          else
+            echo "amplify_outputs.json not found, creating minimal config"
+            echo '{"aws_project_region":"us-east-1"}' > dist/amplify_outputs.json
+          fi
   artifacts:
     baseDirectory: dist
     files:
