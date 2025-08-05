@@ -1,8 +1,15 @@
 version: 1
 backend:
   phases:
+    preBuild:
+      commands:
+        - nvm use 20
+        - npm ci --prefix amplify
     build:
-      commands: []
+      commands:
+        - npm run --prefix amplify build
+        - node amplify/dist/backend.js
+        - cp amplify/outputs.json amplify_outputs.json
 frontend:
   phases:
     preBuild:
@@ -14,14 +21,8 @@ frontend:
         - npm run build
     postBuild:
       commands:
-        - |
-          if [ -f amplify_outputs.json ]; then
-            cp amplify_outputs.json dist/
-            echo "Copied amplify_outputs.json to dist/"
-          else
-            echo "amplify_outputs.json not found, creating minimal config"
-            echo '{"aws_project_region":"us-east-1"}' > dist/amplify_outputs.json
-          fi
+        - cp amplify_outputs.json dist/
+        - echo "Copied amplify_outputs.json to dist/"
   artifacts:
     baseDirectory: dist
     files:
