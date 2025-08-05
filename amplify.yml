@@ -3,7 +3,7 @@ backend:
   phases:
     build:
       commands:
-        - npx ampx generate outputs --app-id $AWS_APP_ID --branch-name $AWS_BRANCH
+        - npm ci --prefix amplify
 frontend:
   phases:
     preBuild:
@@ -18,4 +18,5 @@ frontend:
       - '**/*'
   cache:
     paths:
-      - node_modules/**/* 
+      - node_modules/**/*
+      - amplify/node_modules/**/* 
