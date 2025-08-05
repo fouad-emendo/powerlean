@@ -7,9 +7,20 @@ backend:
         - cd amplify && npm install && cd ..
     build:
       commands:
-        - cd amplify && npm run build && cd ..
-        - cd amplify && node dist/backend.js && cd ..
-        - cp amplify/outputs.json amplify_outputs.json || echo "No outputs.json file generated"
+        - |
+          cd amplify
+          echo "Building backend..."
+          npm run build
+          echo "Running backend script..."
+          node dist/backend.js
+          if [ -f outputs.json ]; then
+            echo "Copying outputs.json..."
+            cp outputs.json ../amplify_outputs.json
+          else
+            echo "No outputs.json file generated, creating default config..."
+            echo '{"aws_project_region":"us-east-1"}' > ../amplify_outputs.json
+          fi
+          cd ..
 frontend:
   phases:
     preBuild:
