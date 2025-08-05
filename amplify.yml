@@ -15,13 +15,21 @@ frontend:
         - npm ci
     build:
       commands:
-        - cp amplify_outputs.json dist/
         - npm run build
+    postBuild:
+      commands:
+        - |
+          if [ -f amplify_outputs.json ]; then
+            cp amplify_outputs.json dist/
+            echo "Copied amplify_outputs.json to dist/"
+          else
+            echo "amplify_outputs.json not found, creating minimal config"
+            echo '{"aws_project_region":"us-east-1"}' > dist/amplify_outputs.json
+          fi
   artifacts:
     baseDirectory: dist
     files:
       - '**/*'
-      - '../amplify_outputs.json'
   cache:
     paths:
       - node_modules/**/*
