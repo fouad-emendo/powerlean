@@ -1,30 +1,27 @@
 {
   "name": "powerlean-grid",
   "version": "1.0.0",
-  "description": "Interactive grid layout with resizable cells and link management using gridstack.js",
-  "main": "index.html",
-  "scripts": {
-    "build": "tsc",
-    "dev": "concurrently \"tsc --watch\" \"npx http-server . --port 8080\"",
-    "dev:build": "tsc --watch",
-    "dev:serve": "npx http-server . --port 8080",
-    "serve": "npx http-server ."
+  "engines": {
+    "node": ">=20.0.0"
   },
-  "devDependencies": {
-    "@aws-amplify/backend": "^1.16.1",
-    "@aws-amplify/backend-cli": "^1.8.0",
-    "@types/node": "^20.0.0",
-    "@types/react": "^19.1.9",
-    "@types/react-dom": "^19.1.7",
-    "aws-cdk-lib": "^2.204.0",
-    "concurrently": "^8.2.0",
-    "constructs": "^10.4.2",
-    "esbuild": "^0.25.8",
-    "tsx": "^4.20.3",
-    "typescript": "^5.9.2"
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
-    "aws-amplify": "^6.15.4",
-    "gridstack": "^10.3.1"
+    "@aws-amplify/backend": "latest",
+    "@types/gridstack": "^0.5.0",
+    "aws-amplify": "latest",
+    "gridstack": "^12.2.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^4.2.0",
+    "typescript": "^5.0.0",
+    "vite": "^5.0.0"
   }
 }
