@@ -1,11 +1,13 @@
 version: 1
+
 backend:
   phases:
     build:
       commands:
         - cd amplify
         - npm install
-        - npx ampx sandbox --once --identifier=main
+        - npm run build
+
 frontend:
   phases:
     preBuild:
@@ -21,15 +23,14 @@ frontend:
           if [ -f amplify_outputs.json ]; then
             cp amplify_outputs.json dist/
             echo "Copied amplify_outputs.json to dist/"
-          else
-            echo "amplify_outputs.json not found, creating minimal config"
-            echo '{"aws_project_region":"us-east-1"}' > dist/amplify_outputs.json
           fi
+
   artifacts:
     baseDirectory: dist
     files:
       - '**/*'
+
   cache:
     paths:
       - node_modules/**/*
-      - amplify/node_modules/**/* 
+      - amplify/node_modules/**/*

@@ -5,10 +5,8 @@ import 'gridstack/dist/gridstack.min.css';
 import './styles.css';
 import App from './App';
 
-// Import Amplify configuration
 async function configureAmplify() {
   try {
-    // Use fetch to dynamically load the config file instead of import
     const response = await fetch('/amplify_outputs.json');
     if (response.ok) {
       const config = await response.json();
@@ -19,7 +17,6 @@ async function configureAmplify() {
     }
   } catch (error) {
     console.warn('Amplify configuration not found, app will work without backend features:', error);
-    // Configure with minimal config to prevent errors
     Amplify.configure({
       aws_project_region: 'us-east-1',
     });
